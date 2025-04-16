@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Attendance and Tasks</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: "Arial", sans-serif;
+            padding: 20px;
+            background-color: #f9f9f9;
+            color: #333;
+            margin: 0;
+        }
+
+        h1 {
+            background-color: #007BFF;
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .week {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .date-box {
+            flex: 1;
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            margin: 0 2px;
+            min-height: 20px;
+        }
+
+        .date-box:hover {
+            background-color: #e0e0e0;
+        }
+
+        .date-box.present {
+            background-color: #b6e6b6; /* Green for Present */
+        }
+
+        .date-box.absent {
+            background-color: #f5bcbc; /* Red for Absent */
+        }
+
+        .task-details {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
+
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            padding: 20px;
+            background-color: #f0f0f0;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 8px;
+            margin: 8px 0;
+            display: inline-block;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .btn {
+            background-color: #007BFF;
+            color: white;
+            padding: 10px 15px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+        }
+
+        .btn-success {
+            background-color: #28a745;
+        }
+
+        .attendance-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .btn-container {
+            text-align: right;
+            margin-top: 20px;
+        }
+        
+        .home-btn {
+            background-color: #6c757d;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .datetime {
+            text-align: center;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        @media only screen and (max-width: 500px) {
+            body {
+                font-size: 14px;
+                padding: 10px;
+            }
+
+            .week {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .date-box {
+                width: calc(20% - 10px);
+                margin: 5px;
+            }
+
+            .popup {
+                top: 40%;
+                left: 50%;
+                transform: translate(-50%, -40%);
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="overlay" class="overlay"></div>
+
+<div id="home-page">
+    <h1>Attendance Tracking System</h1>
+    <div class="datetime" id="datetime"></div>
+    <div class="container" style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center; width: 100%;">
+        <div class="box" onclick="showUserPage('Lakshani')" style="width: 150px; height: 150px; background-color: #3498db; color: #fff; font-size: 24px; display: flex; justify-content: center; align-items: center; margin: 10px; border-radius: 10px; box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.2); cursor: pointer;">Lakshani</div>
+        <div class="box" onclick="showUserPage('Gayan')" style="width: 150px; height: 150px; background-color: #3498db; color: #fff; font-size: 24px; display: flex; justify-content: center; align-items: center; margin: 10px; border-radius: 10px; box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.2); cursor: pointer;">Gayan</div>
+        <div class="box" onclick="showUserPage('Lakmini')" style="width: 150px; height: 150px; background-color: #3498db; color: #fff; font-size: 24px; display: flex; justify-content: center; align-items: center; margin: 10px; border-radius: 10px; box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.2); cursor: pointer;">Lakmini</div>
+        <div class="box" onclick="showUserPage('Yasith')" style="width: 150px; height: 150px; background-color: #3498db; color: #fff; font-size: 24px; display: flex; justify-content: center; align-items: center; margin: 10px; border-radius: 10px; box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.2); cursor: pointer;">Yasith</div>
+    </div>
+</div>
+
+<div id="user-page" style="display: none;">
+    <button class="home-btn" onclick="showHomePage()">← Back to Home</button>
+    <h1 id="pageTitle">Attendance and Tasks</h1>
+
+    <div style="margin-bottom: 20px;">
+        <label for="monthSelect">Select Month:</label>
+        <select id="monthSelect" class="form-control" onchange="renderCalendar()">
+            <option value="0">January</option>
+            <option value="1">February</option>
+            <option value="2">March</option>
+            <option value="3">April</option>
+            <option value="4">May</option>
+            <option value="5">June</option>
+            <option value="6">July</option>
+            <option value="7">August</option>
+            <option value="8">September</option>
+            <option value="9">October</option>
+            <option value="10">November</option>
+            <option value="11">December</option>
+        </select>
+    </div>
+
+    <div id="calendarContainer"></div>
+
+    <div class="btn-container">
+        <button class="btn" onclick="showAddTaskPopup()">Add Tasks</button>
+    </div>
+</div>
+
+<div id="popup" class="popup">
+    <h2 id="popupDate"></h2>
+    <div id="popupTasks"></div>
+    <div class="attendance-buttons">
+        <button class="btn btn-success" onclick="markAttendance('present')">Mark Present</button>
+        <button class="btn btn-danger" onclick="markAttendance('absent')">Mark Absent</button>
+    </div>
+    <center><button class="btn" onclick="hidePopup()">Close</button></center>
+</div>
+
+<div id="addTaskPopup" class="popup">
+    <h2>Add Tasks</h2>
+    <form id="taskForm">
+        <div>
+            <label for="taskDate">Date:</label>
+            <input type="date" id="taskDate" class="form-control" required>
+        </div>
+        <div>
+            <label for="taskDescription">Task Description:</label>
+            <textarea id="taskDescription" class="form-control" rows="4" required></textarea>
+        </div>
+        <div class="attendance-buttons">
+            <button type="button" class="btn btn-success" onclick="saveTask()">Save Task</button>
+            <button type="button" class="btn" onclick="hideAddTaskPopup()">Cancel</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Global variables
+    let currentUser = "";
+    let currentDate = null;
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const fullMonthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+    // Default user data
+    let userData = {
+        "Lakshani": {
+            tasks: {
+                "Aug 5": ["Complete project documentation", "Meeting with client at 2 PM"],
+                "Aug 10": ["Submit weekly report"]
+            },
+            attendance: {
+                "Aug 5": "present",
+                "Aug 6": "present",
+                "Aug 7": "absent",
+                "Aug 10": "present"
+            }
+        },
+        "Gayan": {
+            tasks: {
+                "Aug 3": ["Code review for new feature"],
+                "Aug 8": ["Team lunch at 12:30 PM", "Update database schema"]
+            },
+            attendance: {
+                "Aug 3": "present",
+                "Aug 4": "present",
+                "Aug 7": "present",
+                "Aug 8": "absent"
+            }
+        },
+        "Lakmini": {
+            tasks: {
+                "Aug 4": ["Prepare presentation slides"],
+                "Aug 9": ["QA testing for mobile app"]
+            },
+            attendance: {
+                "Aug 4": "present",
+                "Aug 5": "absent",
+                "Aug 9": "present"
+            }
+        },
+        "Yasith": {
+            tasks: {
+                "Aug 2": ["Design website mockup"],
+                "Aug 6": ["Client meeting at 10 AM", "Update website content"]
+            },
+            attendance: {
+                "Aug 2": "present",
+                "Aug 6": "present",
+                "Aug 9": "absent"
+            }
+        }
+    };
+
+    // Save data to localStorage with error handling
+    function saveData() {
+        try {
+            localStorage.setItem('attendanceUserData', JSON.stringify(userData));
+            return true;
+        } catch (e) {
+            console.error("Error saving data to localStorage:", e);
+            alert("Failed to save your data. Local storage might be disabled or full.");
+            return false;
+        }
+    }
+
+    // Load data from localStorage with error handling
+    function loadData() {
+        try {
+            const storedData = localStorage.getItem('attendanceUserData');
+            if (storedData) {
+                userData = JSON.parse(storedData);
+            }
+        } catch (e) {
+            console.error("Error loading data from localStorage:", e);
+            alert("Failed to load saved data. Using default data instead.");
+            // Continue with default data
+        }
+    }
+
+    // Initialize the application
+    document.addEventListener('DOMContentLoaded', function() {
+        loadData();  // Load data from localStorage
+        
+        // Set the month dropdown to current month
+        const currentMonthIndex = new Date().getMonth();
+        const monthSelect = document.getElementById('monthSelect');
+        if (monthSelect) {
+            monthSelect.value = currentMonthIndex;
+        }
+        
+        updateDateTime();  // Update the current time
+        setInterval(updateDateTime, 1000); // Update every second to show live time
+    });
+
+    // Update date and time
+    function updateDateTime() {
+        const datetimeElement = document.getElementById('datetime');
+        if (datetimeElement) {
+            const today = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+            const dateTimeString = today.toLocaleString('en-US', options);
+            datetimeElement.textContent = dateTimeString;
+        }
+    }
+
+    // Show user page
+    function showUserPage(username) {
+        currentUser = username;
+        document.getElementById('home-page').style.display = 'none';
+        document.getElementById('user-page').style.display = 'block';
+        document.getElementById('pageTitle').textContent = `Attendance and Tasks - ${currentUser}`;
+        
+        // Ensure user data structure exists
+        if (!userData[currentUser]) {
+            userData[currentUser] = {
+                tasks: {},
+                attendance: {}
+            };
+        }
+        
+        renderCalendar();
+    }
+
+    // Show home page
+    function showHomePage() {
+        document.getElementById('home-page').style.display = 'block';
+        document.getElementById('user-page').style.display = 'none';
+    }
+
+    // Render the calendar based on selected month
+    function renderCalendar() {
+        const monthSelect = document.getElementById('monthSelect');
+        if (!monthSelect) return;
+        
+        const selectedMonth = parseInt(monthSelect.value);
+        const currentYear = new Date().getFullYear();
+        
+        const container = document.getElementById('calendarContainer');
+        container.innerHTML = '';
+        
+        // Add month header
+        const monthHeader = document.createElement('div');
+        monthHeader.innerHTML = `<p style="color:blue; text-align:center; font-weight:bold">${fullMonthNames[selectedMonth]}</p>`;
+        container.appendChild(monthHeader);
+        
+        // Calculate days in month (get the last day of the month)
+        const daysInMonth = new Date(currentYear, selectedMonth + 1, 0).getDate();
+        
+        // First day of the month (0 = Sunday, 1 = Monday, etc.)
+        const firstDay = new Date(currentYear, selectedMonth, 1).getDay();
+        
+        // Create day header (S M T W T F S)
+        const dayHeader = document.createElement('div');
+        dayHeader.className = 'week';
+        const days = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+        days.forEach(day => {
+            const dayElement = document.createElement('div');
+            dayElement.className = 'date-box';
+            dayElement.style.fontWeight = 'bold';
+            dayElement.textContent = day;
+            dayHeader.appendChild(dayElement);
+        });
+        container.appendChild(dayHeader);
+        
+        // Calculate number of weeks needed
+        const totalDays = daysInMonth;
+        const totalCells = firstDay + totalDays;
+        const totalWeeks = Math.ceil(totalCells / 7);
+        
+        let dayCount = 1;
+        
+        // Create calendar
+        for (let week = 0; week < totalWeeks; week++) {
+            const weekContainer = document.createElement('div');
+            weekContainer.className = 'week';
+            
+            // Create 7 days per week
+            for (let dayOfWeek = 0; dayOfWeek < 7; dayOfWeek++) {
+                const dateBox = document.createElement('div');
+                dateBox.className = 'date-box';
+                
+                // Skip cells before the first day of the month
+                if (week === 0 && dayOfWeek < firstDay) {
+                    weekContainer.appendChild(dateBox);
+                    continue;
+                }
+                
+                // Stop after reaching the end of the month
+                if (dayCount > daysInMonth) {
+                    weekContainer.appendChild(dateBox);
+                    continue;
+                }
+                
+                dateBox.textContent = dayCount;
+                
+                const monthAbbr = monthNames[selectedMonth];
+                const dateStr = `${monthAbbr} ${dayCount}`;
+                
+                if (userData[currentUser] && userData[currentUser].attendance[dateStr]) {
+                    dateBox.classList.add(userData[currentUser].attendance[dateStr]);
+                }
+                
+                dateBox.onclick = function() {
+                    showPopup(dateStr);
+                };
+                
+                weekContainer.appendChild(dateBox);
+                dayCount++;
+            }
+            
+            container.appendChild(weekContainer);
+        }
+    }
+
+    // Show popup with task details
+    function showPopup(date) {
+        currentDate = date;
+        const popup = document.getElementById('popup');
+        const overlay = document.getElementById('overlay');
+        const popupDate = document.getElementById('popupDate');
+        const popupTasks = document.getElementById('popupTasks');
+
+        if (!userData[currentUser] || !userData[currentUser].tasks) {
+            userData[currentUser] = {
+                tasks: {},
+                attendance: {}
+            };
+        }
+
+        const tasks = userData[currentUser].tasks[date] || [];
+
+        popupDate.textContent = "Task Details for " + date;
+        
+        if (tasks.length > 0) {
+            const taskList = document.createElement("ul");
+            taskList.style.paddingLeft = "20px";
+
+            tasks.forEach((task, index) => {
+                const listItem = document.createElement("li");
+                const taskText = document.createElement("span");
+                taskText.textContent = task;
+                listItem.appendChild(taskText);
+
+                const deleteBtn = document.createElement("button");
+                deleteBtn.textContent = "×";
+                deleteBtn.style.marginLeft = "10px";
+                deleteBtn.style.color = "red";
+                deleteBtn.style.background = "none";
+                deleteBtn.style.border = "none";
+                deleteBtn.style.cursor = "pointer";
+                deleteBtn.onclick = function(e) {
+                    e.stopPropagation();
+                    deleteTask(date, index);
+                };
+                listItem.appendChild(deleteBtn);
+
+                taskList.appendChild(listItem);
+            });
+
+            popupTasks.innerHTML = "";
+            popupTasks.appendChild(taskList);
+        } else {
+            popupTasks.innerHTML = "<p>No tasks recorded for " + date + ".</p>";
+        }
+
+        popup.style.display = 'block';
+        overlay.style.display = 'block';
+    }
+
+    // Hide task details popup
+    function hidePopup() {
+        const popup = document.getElementById('popup');
+        const overlay = document.getElementById('overlay');
+        popup.style.display = 'none';
+        overlay.style.display = 'none';
+    }
+
+    // Show Add Task popup
+    function showAddTaskPopup() {
+        const popup = document.getElementById('addTaskPopup');
+        const overlay = document.getElementById('overlay');
+        
+        // Set default date to today
+        const today = new Date();
+        const dateInput = document.getElementById('taskDate');
+        dateInput.value = today.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+        
+        popup.style.display = 'block';
+        overlay.style.display = 'block';
+    }
+    
+    // Hide Add Task popup
+    function hideAddTaskPopup() {
+        const popup = document.getElementById('addTaskPopup');
+        const overlay = document.getElementById('overlay');
+        popup.style.display = 'none';
+        overlay.style.display = 'none';
+    }
+
+    // Add new task
+    function saveTask() {
+        const dateInput = document.getElementById('taskDate');
+        const descriptionInput = document.getElementById('taskDescription');
+
+        if (!dateInput.value || !descriptionInput.value.trim()) {
+            alert('Please fill in all fields');
+            return;
+        }
+
+        try {
+            const date = new Date(dateInput.value);
+            const monthIndex = date.getMonth();
+            const formattedDate = `${monthNames[monthIndex]} ${date.getDate()}`;
+
+            if (!userData[currentUser]) {
+                userData[currentUser] = { tasks: {}, attendance: {} };
+            }
+            
+            if (!userData[currentUser].tasks) {
+                userData[currentUser].tasks = {};
+            }
+            
+            if (!userData[currentUser].tasks[formattedDate]) {
+                userData[currentUser].tasks[formattedDate] = [];
+            }
+
+            userData[currentUser].tasks[formattedDate].push(descriptionInput.value.trim());
+            
+            const saved = saveData();
+            
+            if (saved) {
+                descriptionInput.value = '';
+                hideAddTaskPopup();
+                renderCalendar();
+                alert('Task added successfully!');
+            }
+        } catch (e) {
+            console.error("Error saving task:", e);
+            alert("Failed to save task. Please try again.");
+        }
+    }
+
+    // Delete task
+    function deleteTask(date, index) {
+        if (confirm('Are you sure you want to delete this task?')) {
+            try {
+                userData[currentUser].tasks[date].splice(index, 1);
+
+                if (userData[currentUser].tasks[date].length === 0) {
+                    delete userData[currentUser].tasks[date];
+                }
+
+                saveData();
+                showPopup(date);
+            } catch (e) {
+                console.error("Error deleting task:", e);
+                alert("Failed to delete task. Please try again.");
+            }
+        }
+    }
+
+    // Mark attendance
+    function markAttendance(status) {
+        if (!currentDate) return;
+
+        try {
+            if (!userData[currentUser]) {
+                userData[currentUser] = { tasks: {}, attendance: {} };
+            }
+            
+            if (!userData[currentUser].attendance) {
+                userData[currentUser].attendance = {};
+            }
+            
+            userData[currentUser].attendance[currentDate] = status;
+            saveData();
+            renderCalendar();
+            hidePopup();
+        } catch (e) {
+            console.error("Error marking attendance:", e);
+            alert("Failed to mark attendance. Please try again.");
+        }
+    }
+
+    // When clicking outside a popup, close it
+    window.onclick = function(event) {
+        const overlay = document.getElementById('overlay');
+        if (event.target === overlay) {
+            hidePopup();
+            hideAddTaskPopup();
+        }
+    };
+</script>
+</body>
+</html>
